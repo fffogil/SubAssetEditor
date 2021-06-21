@@ -204,7 +204,7 @@ namespace Coffee.Editors
                 GUILayout.FlexibleSpace();
             }
 
-            ShowSubAssets = EditorGUILayout.Foldout(ShowSubAssets);
+            ShowSubAssets = EditorGUILayout.Foldout(ShowSubAssets, "Sub assets foldout");
             if (ShowSubAssets)
             {
                 EditorGUI.indentLevel++;
