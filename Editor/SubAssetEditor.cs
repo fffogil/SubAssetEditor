@@ -152,6 +152,8 @@ namespace Coffee.Editors
             _hasSelectionChanged = true;
         }
 
+        public bool ShowSubAssets = true;
+
         private void OnGUI()
         {
             CacheGUI();
@@ -202,57 +204,61 @@ namespace Coffee.Editors
                 GUILayout.FlexibleSpace();
             }
 
-            EditorGUI.indentLevel++;
-            foreach (var asset in _subAssets)
+            ShowSubAssets = EditorGUILayout.Foldout(ShowSubAssets);
+            if (ShowSubAssets)
             {
-                var r = EditorGUILayout.GetControlRect(true);
-
-                r.width -= 60;
-                var rField = new Rect(r);
-                if (_isRenaming)
+                EditorGUI.indentLevel++;
+                foreach (var asset in _subAssets)
                 {
-                    rField.width = 12;
-                    rField.height = 12;
-                    //Draw icon of current object.
-                    EditorGUI.LabelField(r, new GUIContent(AssetPreview.GetMiniThumbnail(asset)));
-                    EditorGUI.BeginChangeCheck();
+                    var r = EditorGUILayout.GetControlRect(true);
 
-                    rField.x += rField.width + 4;
-                    rField.width = r.width - rField.width;
-                    rField.height = r.height;
-                    asset.name = EditorGUI.DelayedTextField(rField, asset.name);
-                    if (EditorGUI.EndChangeCheck())
+                    r.width -= 60;
+                    var rField = new Rect(r);
+                    if (_isRenaming)
                     {
-                        AssetDatabase.SaveAssets();
+                        rField.width = 12;
+                        rField.height = 12;
+                        //Draw icon of current object.
+                        EditorGUI.LabelField(r, new GUIContent(AssetPreview.GetMiniThumbnail(asset)));
+                        EditorGUI.BeginChangeCheck();
+
+                        rField.x += rField.width + 4;
+                        rField.width = r.width - rField.width;
+                        rField.height = r.height;
+                        asset.name = EditorGUI.DelayedTextField(rField, asset.name);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            AssetDatabase.SaveAssets();
+                        }
+                    }
+                    else
+                    {
+                        EditorGUI.ObjectField(rField, asset, asset.GetType(), false);
+                    }
+
+                    r.x += r.width;
+                    r.width = 20;
+                    r.height = 20;
+                    if (!_referencingAssets.Contains(asset))
+                    {
+                        GUI.Label(r, _contentNoRef);
+                    }
+
+                    r.x += r.width;
+                    if (GetFileExtension(asset).Length != 0 && GUI.Button(r, _contentExport, EditorStyles.label))
+                    {
+                        ExportSubAsset(asset);
+                    }
+
+                    r.x += r.width;
+                    if (GUI.Button(r, _contentDelete, EditorStyles.label))
+                    {
+                        DeleteSubAsset(asset);
                     }
                 }
-                else
-                {
-                    EditorGUI.ObjectField(rField, asset, asset.GetType(), false);
-                }
 
-                r.x += r.width;
-                r.width = 20;
-                r.height = 20;
-                if (!_referencingAssets.Contains(asset))
-                {
-                    GUI.Label(r, _contentNoRef);
-                }
-
-                r.x += r.width;
-                if (GetFileExtension(asset).Length != 0 && GUI.Button(r, _contentExport, EditorStyles.label))
-                {
-                    ExportSubAsset(asset);
-                }
-
-                r.x += r.width;
-                if (GUI.Button(r, _contentDelete, EditorStyles.label))
-                {
-                    DeleteSubAsset(asset);
-                }
+                EditorGUI.indentLevel--;
             }
-
-            EditorGUI.indentLevel--;
 
             GUILayout.Space(10);
             GUILayout.Toggle(true, "<b>Referencing Objects</b>", "IN Foldout");
